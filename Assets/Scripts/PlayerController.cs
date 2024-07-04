@@ -17,26 +17,24 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask enemyLayers;
     [SerializeField] private float attackRange = 0.5f;
     [SerializeField] private float attackRate = 1f;
-    [SerializeField] private float nextAttackTime = 0f;
+    [SerializeField] private float nextAttackTime = 1f;
 
     //HP Player
     [Header("Player Damage")]
     [SerializeField] private int attackDamage = 2;
-    
+
 
     //Check IsGrounded
     [SerializeField] private LayerMask groundLayer;
 
     //Khoi tao bien logic
     private PlayerHealth playerHealth;
-    private EnemyController enemyController;
     private Rigidbody2D rb;
     private Animator anim;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        enemyController = GetComponent<EnemyController>();  
         anim = GetComponent<Animator>();
         playerHealth = GetComponent<PlayerHealth>();
     }
@@ -49,16 +47,16 @@ public class PlayerController : MonoBehaviour
         Jump();
         InputAttack();
         Die();
-        
+
     }
     //Quay nhan vat theo huong di chuyen
     private void Flip()
     {
-        if(xAxis < 0)
+        if (xAxis < 0)
         {
             transform.localScale = new Vector2(-1, transform.localScale.y);
         }
-        else
+        else if (xAxis > 0)
         {
             transform.localScale = new Vector2(1, transform.localScale.y);
         }
@@ -111,14 +109,14 @@ public class PlayerController : MonoBehaviour
         float distance = 1.0f;
 
         RaycastHit2D hit = Physics2D.Raycast(position, direction, distance, groundLayer);
-        if(hit.collider != null)
+        if (hit.collider != null)
         {
             return true;
         }
         return false;
     }
     //Ham Attack
-    private void Attack()
+    /*private void Attack()
     {
         //set Aninmation
         anim.SetTrigger("Attacking");
@@ -126,9 +124,32 @@ public class PlayerController : MonoBehaviour
         Collider2D[] hitEnemics = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
 
         //Cong Damge
-        foreach(Collider2D enemy in hitEnemics)
+        foreach (Collider2D enemy in hitEnemics)
         {
             enemy.GetComponent<EnemyController>().TakeDamage(attackDamage);
+        }
+    }*/
+    private void Attack()
+    {
+        
+        anim.SetTrigger("Attacking");
+
+        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
+
+        foreach (Collider2D enemyCollider in hitEnemies)
+        {
+            EnemyController enemy = enemyCollider.GetComponent<EnemyController>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(attackDamage);
+
+                Vector2 knockbackDirection = (enemy.transform.position - transform.position).normalized;
+                enemy.ApplyKnockback(knockbackDirection);
+            }
+            else
+            {
+                Debug.LogWarning("Enemy does not have EnemyController attached: " + enemyCollider.name);
+            }
         }
     }
     //Ham ve ra vung tan cong
@@ -142,7 +163,7 @@ public class PlayerController : MonoBehaviour
     public void Hurt()
     {
         anim.SetTrigger("Hurting");
-        
+
     }
     private void Die()
     {

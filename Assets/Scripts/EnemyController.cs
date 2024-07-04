@@ -1,6 +1,5 @@
-using System.Collections;
-using TreeEditor;
 using UnityEngine;
+using System.Collections;
 
 public class EnemyController : MonoBehaviour
 {
@@ -24,32 +23,47 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private float chanseDistance;
 
 
-    
+
 
     private Animator anim;
     private Rigidbody2D rb;
-    private float countdownTimer = 1f;
 
     private void Start()
     {
-        rb= GetComponent<Rigidbody2D>();    
+        rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         currentHealth = maxHealth;
     }
     private void Update()
     {
-        if(playerTransform != null)
+        if (playerTransform != null)
         {
             MoveToWaypoint();
         }
     }
     //Nhan damage
+    /*public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;
+        Hurt();
+    }*/
     public void TakeDamage(int damage)
     {
         currentHealth -= damage;
         Hurt();
+
+        
+        Vector2 knockbackDirection = (transform.position - playerTransform.position).normalized;
+        ApplyKnockback(knockbackDirection);
     }
-    private void Hurt()
+
+    public void ApplyKnockback(Vector2 direction)
+    {
+        
+        float knockbackForce = 7f; 
+        rb.velocity = direction * knockbackForce;
+    }
+    public void Hurt()
     {
         anim.SetTrigger("Hurting");
         if (currentHealth <= 0)
@@ -75,9 +89,9 @@ public class EnemyController : MonoBehaviour
         Destroy(gameObject);
     }
     //Ham tra sat thuong cho player
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D other)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (other.gameObject.CompareTag("Player"))
         {
             playerHealth.TakeDamage(damage);
             anim.SetTrigger("Attacking");
@@ -103,36 +117,65 @@ public class EnemyController : MonoBehaviour
             return;
         }
 
-        if (isChasing)
+        if (wayPoints == null || wayPoints.Length < 2)
         {
-            if(transform.position.x > playerTransform.position.x)
+            Debug.LogError("Not enough waypoints set.");
+            return;
+        }
+
+        Vector2 wayPointMin = wayPoints[0].position;
+        Vector2 wayPointMax = wayPoints[1].position;
+
+        // Ensure wayPointMin is the minimum x value and wayPointMax is the maximum x value
+        if (wayPointMin.x > wayPointMax.x)
+        {
+            Vector2 temp = wayPointMin;
+            wayPointMin = wayPointMax;
+            wayPointMax = temp;
+        }
+
+        bool isPlayerInRange = playerTransform.position.x >= wayPointMin.x && playerTransform.position.x <= wayPointMax.x;
+
+        if (isChasing && isPlayerInRange)
+        {
+            anim.SetBool("Running", true);
+
+            if (transform.position.x > playerTransform.position.x)
             {
                 transform.localScale = new Vector3(-1, 1, 1);
                 transform.position += Vector3.left * moveSpeed * Time.deltaTime;
             }
-            if (transform.position.x < playerTransform.position.x)
+            else if (transform.position.x < playerTransform.position.x)
             {
                 transform.localScale = new Vector3(1, 1, 1);
                 transform.position += Vector3.right * moveSpeed * Time.deltaTime;
             }
+
+            if (Vector2.Distance(transform.position, playerTransform.position) > chanseDistance || !isPlayerInRange)
+            {
+                isChasing = false;
+            }
         }
         else
         {
-            if(Vector2.Distance(transform.position, playerTransform.position) < chanseDistance)
+            if (isPlayerInRange && Vector2.Distance(transform.position, playerTransform.position) < chanseDistance)
             {
                 isChasing = true;
+                return;
             }
+
             anim.SetBool("Running", true);
+
             if (wayPointDestination == 0)
             {
-                transform.position = Vector2.MoveTowards(transform.position, wayPoints[0].position, moveSpeed* Time.deltaTime);
+                transform.position = Vector2.MoveTowards(transform.position, wayPoints[0].position, moveSpeed * Time.deltaTime);
                 if (Vector2.Distance(transform.position, wayPoints[0].position) < 0.2f)
                 {
-                    transform.localScale=new Vector3(1, 1, 1);
+                    transform.localScale = new Vector3(1, 1, 1);
                     wayPointDestination = 1;
                 }
             }
-            if (wayPointDestination == 1)
+            else if (wayPointDestination == 1)
             {
                 transform.position = Vector2.MoveTowards(transform.position, wayPoints[1].position, moveSpeed * Time.deltaTime);
                 if (Vector2.Distance(transform.position, wayPoints[1].position) < 0.2f)
@@ -142,7 +185,12 @@ public class EnemyController : MonoBehaviour
                 }
             }
         }
+
+        // Stop running animation when idle
+        if (!isChasing && Vector2.Distance(transform.position, wayPoints[wayPointDestination].position) < 0.2f)
+        {
+            anim.SetBool("Running", false);
+        }
     }
-
-
 }
+
