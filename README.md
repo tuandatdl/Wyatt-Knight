@@ -1,6 +1,8 @@
 # Wyatt-Knight
 ***The game was developed by the Dream Drawers team, they are students who love game programming and are researching product development.
+
 ***The team includes: Phan Thanh Hai (Leader), Do Le Tuan Dat (Code),...
+
 *******Game plot:
 Eldoria: Where legends fall and darkness rises
 Eldoria, the sacred land of humanity, was once a shining beacon of advanced civilization. This place is known for its magnificent architecture, advanced technology and rich culture. However, after a horrifying meteorite collision - turned Eldoria into piles of ashes, almost completely destroying that brilliant civilization.
@@ -14,3 +16,5 @@ End:
 After defeating the final boss and destroying the enemy force's headquarters, Wyatt Knight returned with the survivors to begin the work of rebuilding the land of Eldoria. Wyatt Knight, the hero who freed Eldoria from the yoke of darkness, was revered by the people as a god. He became a symbol of courage, hope and solidarity.
 The story of Wyatt Knight and his adventures in Eldoria will forever be passed down, inspiring future generations. It is a reminder that, even in the most difficult circumstances, hope always exists, and people can overcome any adversity if they unite and work together.
 Eldoria has been reborn from the ashes, stronger and more brilliant than ever. The future of this land promises to be full of light and hope.
+
+*****Thank You
